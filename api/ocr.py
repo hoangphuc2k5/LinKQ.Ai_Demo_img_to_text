@@ -22,7 +22,7 @@ os.environ.setdefault("FLAGS_enable_new_executor", "0")
 MAX_BODY_BYTES = 4 * 1024 * 1024
 ALLOWED_EXTENSIONS = {".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tif", ".tiff"}
 _ocr: Any | None = None
-_ocr_lock = threading.Lock()
+_ocr_lock = threading.RLock()
 MODEL_ROOT = Path(__file__).resolve().parents[1] / "models"
 
 
@@ -47,10 +47,11 @@ def get_ocr() -> Any:
                 use_doc_unwarping=False,
                 use_textline_orientation=False,
                 device="cpu",
+                engine="paddle_static",
                 enable_mkldnn=False,
-                cpu_threads=2,
+                cpu_threads=1,
             )
-    return _ocr
+        return _ocr
 
 
 def parse_multipart(body: bytes, content_type: str) -> tuple[str, bytes]:
@@ -76,7 +77,9 @@ def parse_multipart(body: bytes, content_type: str) -> tuple[str, bytes]:
 def recognize(image_path: str) -> dict[str, Any]:
     started = time.perf_counter()
     lines: list[dict[str, Any]] = []
-    for page in get_ocr().predict(image_path):
+    with _ocr_lock:
+        pages = list(get_ocr().predict(image_path))
+    for page in pages:
         data = getattr(page, "json", {}).get("res", {})
         for text, score, polygon in zip(
             data.get("rec_texts", []), data.get("rec_scores", []), data.get("rec_polys", [])
