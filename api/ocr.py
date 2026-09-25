@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Any
 
 os.environ.setdefault("PADDLE_PDX_CACHE_HOME", "/tmp/.paddlex")
+os.environ.setdefault("PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK", "True")
 os.environ.setdefault("FLAGS_use_mkldnn", "0")
 os.environ.setdefault("FLAGS_enable_pir_api", "0")
 os.environ.setdefault("FLAGS_enable_new_executor", "0")
