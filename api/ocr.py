@@ -39,9 +39,9 @@ def get_ocr() -> Any:
                     f"OCR models are missing: det={det_model.exists()}, rec={rec_model.exists()}"
                 )
             _ocr = PaddleOCR(
-                text_detection_model_name="PP-OCRv6_medium_det",
+                text_detection_model_name="PP-OCRv5_server_det",
                 text_detection_model_dir=str(det_model),
-                text_recognition_model_name="PP-OCRv6_medium_rec",
+                text_recognition_model_name="PP-OCRv5_server_rec",
                 text_recognition_model_dir=str(rec_model),
                 use_doc_orientation_classify=False,
                 use_doc_unwarping=False,
