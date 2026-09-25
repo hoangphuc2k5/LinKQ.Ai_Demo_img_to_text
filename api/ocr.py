@@ -7,6 +7,7 @@ import os
 import tempfile
 import threading
 import time
+import traceback
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler
 from pathlib import Path
@@ -30,9 +31,15 @@ def get_ocr() -> Any:
         if _ocr is None:
             from paddleocr import PaddleOCR
 
+            det_model = MODEL_ROOT / "PP-OCRv6_medium_det"
+            rec_model = MODEL_ROOT / "PP-OCRv6_medium_rec"
+            if not det_model.is_dir() or not rec_model.is_dir():
+                raise RuntimeError(
+                    f"OCR models are missing: det={det_model.exists()}, rec={rec_model.exists()}"
+                )
             _ocr = PaddleOCR(
-                text_detection_model_dir=str(MODEL_ROOT / "PP-OCRv6_medium_det"),
-                text_recognition_model_dir=str(MODEL_ROOT / "PP-OCRv6_medium_rec"),
+                text_detection_model_dir=str(det_model),
+                text_recognition_model_dir=str(rec_model),
                 use_doc_orientation_classify=False,
                 use_doc_unwarping=False,
                 use_textline_orientation=False,
@@ -113,7 +120,8 @@ class handler(BaseHTTPRequestHandler):
         except ValueError as error:
             self.send_json({"error": str(error)}, HTTPStatus.BAD_REQUEST)
         except Exception as error:
-            print(f"OCR error: {error}")
+            print(f"OCR error: {error}", flush=True)
+            traceback.print_exc()
             self.send_json({"error": "Khong the doc anh. Xem Function Logs tren Vercel."}, HTTPStatus.INTERNAL_SERVER_ERROR)
         finally:
             if temp_path:
