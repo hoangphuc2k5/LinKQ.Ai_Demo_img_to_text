@@ -1,0 +1,4 @@
+PaddleOCR/
+output/
+__pycache__/
+*.pyc

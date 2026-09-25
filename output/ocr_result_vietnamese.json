@@ -1,0 +1,10 @@
+{
+  "image_path": "C:\\Users\\ADMIN\\Downloads\\capcha\\Screenshot 2026-09-21 100734.png",
+  "total_texts": 0,
+  "init_time_seconds": 1.69,
+  "predict_time_seconds": 0.35,
+  "engine": "paddle_static",
+  "enable_mkldnn": false,
+  "model_config": "PP-OCRv6_medium (50 languages including Vietnamese)",
+  "results": []
+}
