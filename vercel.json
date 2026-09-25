@@ -2,7 +2,8 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "functions": {
     "api/*.py": {
-      "maxDuration": 60,
+      "maxDuration": 300,
+      "includeFiles": "models/**",
       "excludeFiles": "{PaddleOCR/**,output/**,01_verify_install.py,02_example_ocr.py,app.py}"
     }
   }
