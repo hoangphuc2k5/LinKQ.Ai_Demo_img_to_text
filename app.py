@@ -44,7 +44,6 @@ def get_ocr() -> Any:
                 use_doc_unwarping=False,
                 use_textline_orientation=False,
                 device="cpu",
-                engine="paddle_static",
                 enable_mkldnn=False,
                 cpu_threads=4,
             )
