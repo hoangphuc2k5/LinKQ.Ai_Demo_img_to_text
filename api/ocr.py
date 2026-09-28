@@ -20,6 +20,8 @@ os.environ.setdefault("FLAGS_enable_pir_api", "0")
 os.environ.setdefault("FLAGS_enable_new_executor", "0")
 
 MAX_BODY_BYTES = 4 * 1024 * 1024
+MAX_IMAGE_SIDE = 2000
+MAX_IMAGE_PIXELS = 80_000_000
 ALLOWED_EXTENSIONS = {".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tif", ".tiff"}
 _ocr: Any | None = None
 _ocr_lock = threading.RLock()
@@ -74,6 +76,23 @@ def parse_multipart(body: bytes, content_type: str) -> tuple[str, bytes]:
     raise ValueError("Khong tim thay truong image hop le.")
 
 
+def prepare_image(image_path: str) -> None:
+    from PIL import Image
+
+    try:
+        with Image.open(image_path) as image:
+            width, height = image.size
+            if width * height > MAX_IMAGE_PIXELS:
+                raise ValueError("Anh co kich thuoc pixel qua lon.")
+            if max(width, height) > MAX_IMAGE_SIDE:
+                image.thumbnail((MAX_IMAGE_SIDE, MAX_IMAGE_SIDE), Image.Resampling.LANCZOS)
+                if Path(image_path).suffix.lower() in {".jpg", ".jpeg"} and image.mode not in {"RGB", "L", "CMYK"}:
+                    image = image.convert("RGB")
+                image.save(image_path)
+    except (Image.DecompressionBombError, OSError) as error:
+        raise ValueError("Tep tai len khong phai anh hop le.") from error
+
+
 def recognize(image_path: str) -> dict[str, Any]:
     started = time.perf_counter()
     lines: list[dict[str, Any]] = []
@@ -120,6 +139,7 @@ class handler(BaseHTTPRequestHandler):
             with tempfile.NamedTemporaryFile(dir="/tmp", suffix=suffix, delete=False) as temp_file:
                 temp_file.write(content)
                 temp_path = temp_file.name
+            prepare_image(temp_path)
             response = recognize(temp_path)
             response["filename"] = Path(filename).name
             self.send_json(response)
